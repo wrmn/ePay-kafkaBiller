@@ -42,7 +42,7 @@ func doConsume(broker string, group string) chan bool {
 	} else {
 
 		// subscribe to the topic
-		if err := c.SubscribeTopics([]string{topic1}, nil); err != nil {
+		if err := c.SubscribeTopics([]string{topic3}, nil); err != nil {
 			log.Printf("There's an Error subscribing to the topic:\n\t%v\n", err)
 		} else {
 

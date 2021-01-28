@@ -89,33 +89,50 @@ func responseIso(message string) {
 	var response Iso8583
 	data := message[4:]
 
-	isoStruct := iso8583.NewISOStruct("spec1987.yml", false)
+	isoStruct := iso8583.NewISOStruct("spec1987.yml", true)
 
 	msg, err := isoStruct.Parse(data)
 	if err != nil {
 		log.Println(err)
 	}
 
-	// Convert ISO message to JSON format
-	jsonIso := convertIsoToJson(msg)
+	var isoParsed iso8583.IsoStruct
 
-	// Send JSON data to mock server
-	serverResp := responseJson(jsonIso)
+	// Check processing code
+	pcode := msg.Elements.GetElements()[3]
+	if pcode == "000001" {
+		// Convert ISO message to JSON format
+		jsonIso := convJsonPPOBInquiry(msg)
 
-	// Convert response from JSON data to ISO8583 format
-	isoParsed := convertJsonToIso(serverResp)
+		// Send JSON data to mock server
+		serverResp := responsePPOBInquiry(jsonIso)
+
+		// Convert response from JSON data to ISO8583 format
+		isoParsed = convIsoPPOBInquiry(serverResp)
+
+		isoParsed.AddField(3, "000001")
+	} else if pcode == "000002" {
+		// Convert ISO message to JSON format
+		jsonIso := convJsonPPOBPayment(msg)
+
+		// Send JSON data to mock server
+		serverResp := responsePPOBPayment(jsonIso)
+
+		// Convert response from JSON data to ISO8583 format
+		isoParsed = convIsoPPOBPayment(serverResp)
+
+		isoParsed.AddField(3, "000002")
+	}
 
 	// Change MTI response
 	isoParsed.AddMTI("0210")
 
 	isoMessage, _ := isoParsed.ToString()
-	isoMTI := isoParsed.Mti.String()
-	isoHex, _ := iso8583.BitMapArrayToHex(isoParsed.Bitmap)
 	isoHeader := fmt.Sprintf("%04d", uniseg.GraphemeClusterCount(isoMessage))
 
 	response.Header, _ = strconv.Atoi(isoHeader)
-	response.MTI = isoMTI
-	response.Hex = isoHex
+	response.MTI = isoParsed.Mti.String()
+	response.Hex, _ = iso8583.BitMapArrayToHex(isoParsed.Bitmap)
 	response.Message = isoMessage
 
 	event := isoHeader + isoMessage
@@ -132,7 +149,7 @@ func responseIso(message string) {
 	log.Println("File created: ", file)
 
 	// Produce event
-	err = doProducer(broker, topic2, event)
+	err = doProducer(broker, topic4, event)
 	if err != nil {
 		log.Printf("Error producing message %v\n", message)
 		log.Println(err)

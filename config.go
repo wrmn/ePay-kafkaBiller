@@ -6,4 +6,6 @@ const (
 	group  = "test-go"
 	topic1 = "channel-kafka"
 	topic2 = "kafka-biller"
+	topic3 = "chipsakti-channel"
+	topic4 = "chipsakti-biller"
 )
