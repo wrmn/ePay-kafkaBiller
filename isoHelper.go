@@ -117,6 +117,146 @@ func convIsoPPOBPayment(data PPOBPaymentResponse) iso8583.IsoStruct {
 
 }
 
+func convIsoPPOBStatus(data PPOBStatusResponse) iso8583.IsoStruct {
+	log.Println("Converting JSON to ISO8583")
+
+	trans := map[int64]string{
+		4:   strconv.Itoa(data.Tagihan),
+		5:   strconv.Itoa(data.Admin),
+		6:   strconv.Itoa(data.TotalTagihan),
+		37:  data.Reffid,
+		39:  data.Rc,
+		43:  data.Nama,
+		48:  data.TglLunas,
+		62:  data.Struk,
+		120: data.Msg,
+		121: data.Produk,
+		122: data.Nopel,
+		123: data.ReffNo,
+		124: data.Status,
+	}
+
+	one := iso8583.NewISOStruct("spec1987.yml", true)
+	spec, _ := specFromFile("spec1987.yml")
+
+	if one.Mti.String() != "" {
+		log.Printf("Empty generates invalid MTI")
+	}
+
+	for field, data := range trans {
+
+		fieldSpec := spec.fields[int(field)]
+
+		if fieldSpec.LenType == "fixed" {
+			lengthValidate, _ := iso8583.FixedLengthIntegerValidator(int(field), fieldSpec.MaxLen, data)
+
+			if lengthValidate == false {
+				if fieldSpec.ContentType == "n" {
+					data = leftPad(data, fieldSpec.MaxLen, "0")
+				} else {
+					data = rightPad(data, fieldSpec.MaxLen, " ")
+				}
+			}
+		}
+
+		one.AddField(field, data)
+
+	}
+
+	printSortedDE(one)
+	log.Println("Convert Success")
+	return one
+
+}
+
+func convIsoTopupBuy(data TopupBuyResponse) iso8583.IsoStruct {
+	log.Println("Converting JSON to ISO8583")
+
+	trans := map[int64]string{
+		39:  data.Rc,
+		48:  data.Restime,
+		120: data.Msg,
+		121: data.SN,
+		122: data.Price,
+	}
+
+	one := iso8583.NewISOStruct("spec1987.yml", true)
+	spec, _ := specFromFile("spec1987.yml")
+
+	if one.Mti.String() != "" {
+		log.Printf("Empty generates invalid MTI")
+	}
+
+	for field, data := range trans {
+
+		fieldSpec := spec.fields[int(field)]
+
+		if fieldSpec.LenType == "fixed" {
+			lengthValidate, _ := iso8583.FixedLengthIntegerValidator(int(field), fieldSpec.MaxLen, data)
+
+			if lengthValidate == false {
+				if fieldSpec.ContentType == "n" {
+					data = leftPad(data, fieldSpec.MaxLen, "0")
+				} else {
+					data = rightPad(data, fieldSpec.MaxLen, " ")
+				}
+			}
+		}
+
+		one.AddField(field, data)
+
+	}
+
+	printSortedDE(one)
+	log.Println("Convert Success")
+	return one
+
+}
+
+func convIsoTopupCheck(data TopupCheckResponse) iso8583.IsoStruct {
+	log.Println("Converting JSON to ISO8583")
+
+	trans := map[int64]string{
+		39:  data.Rc,
+		48:  data.Restime,
+		120: data.Msg,
+		121: data.SN,
+		122: data.Price,
+	}
+
+	one := iso8583.NewISOStruct("spec1987.yml", true)
+	spec, _ := specFromFile("spec1987.yml")
+
+	if one.Mti.String() != "" {
+		log.Printf("Empty generates invalid MTI")
+	}
+
+	for field, data := range trans {
+
+		fieldSpec := spec.fields[int(field)]
+
+		if fieldSpec.LenType == "fixed" {
+			lengthValidate, _ := iso8583.FixedLengthIntegerValidator(int(field), fieldSpec.MaxLen, data)
+
+			if lengthValidate == false {
+				if fieldSpec.ContentType == "n" {
+					data = leftPad(data, fieldSpec.MaxLen, "0")
+				} else {
+					data = rightPad(data, fieldSpec.MaxLen, " ")
+				}
+			}
+		}
+
+		one.AddField(field, data)
+
+	}
+
+	printSortedDE(one)
+	log.Println("Convert Success")
+	return one
+
+}
+
 func convertJsonToIso(data PaymentResponse) iso8583.IsoStruct {
 
 	log.Println("Converting JSON to ISO8583")

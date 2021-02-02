@@ -100,7 +100,7 @@ func responseIso(message string) {
 
 	// Check processing code
 	pcode := msg.Elements.GetElements()[3]
-	if pcode == "000001" {
+	if pcode == "380001" {
 		// Convert ISO message to JSON format
 		jsonIso := convJsonPPOBInquiry(msg)
 
@@ -110,8 +110,8 @@ func responseIso(message string) {
 		// Convert response from JSON data to ISO8583 format
 		isoParsed = convIsoPPOBInquiry(serverResp)
 
-		isoParsed.AddField(3, "000001")
-	} else if pcode == "000002" {
+		isoParsed.AddField(3, "380001")
+	} else if pcode == "810001" {
 		// Convert ISO message to JSON format
 		jsonIso := convJsonPPOBPayment(msg)
 
@@ -121,7 +121,40 @@ func responseIso(message string) {
 		// Convert response from JSON data to ISO8583 format
 		isoParsed = convIsoPPOBPayment(serverResp)
 
-		isoParsed.AddField(3, "000002")
+		isoParsed.AddField(3, "810001")
+	} else if pcode == "380002" {
+		// Convert ISO message to JSON format
+		jsonIso := convJsonPPOBStatus(msg)
+
+		// Send JSON data to mock server
+		serverResp := responsePPOBStatus(jsonIso)
+
+		// Convert response from JSON data to ISO8583 format
+		isoParsed = convIsoPPOBStatus(serverResp)
+
+		isoParsed.AddField(3, "380002")
+	} else if pcode == "810002" {
+		// Convert ISO message to JSON format
+		jsonIso := convJsonTopupBuy(msg)
+
+		// Send JSON data to mock server
+		serverResp := responseTopupBuy(jsonIso)
+
+		// Convert response from JSON data to ISO8583 format
+		isoParsed = convIsoTopupBuy(serverResp)
+
+		isoParsed.AddField(3, "810002")
+	} else if pcode == "380003" {
+		// Convert ISO message to JSON format
+		jsonIso := convJsonTopupCheck(msg)
+
+		// Send JSON data to mock server
+		serverResp := responseTopupCheck(jsonIso)
+
+		// Convert response from JSON data to ISO8583 format
+		isoParsed = convIsoTopupCheck(serverResp)
+
+		isoParsed.AddField(3, "380003")
 	}
 
 	// Change MTI response

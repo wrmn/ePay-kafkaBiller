@@ -38,3 +38,47 @@ func responsePPOBPayment(jsonIso PPOBPaymentRequest) PPOBPaymentResponse {
 
 	return response
 }
+
+func responsePPOBStatus(jsonIso PPOBStatusRequest) PPOBStatusResponse {
+	var response PPOBStatusResponse
+
+	response.Produk = "INDOVISION"
+	response.Nopel = "301124297"
+	response.Nama = "YUNUS."
+	response.Tagihan = 351456
+	response.Admin = 0
+	response.TotalTagihan = 351456
+	response.TglLunas = "2018-07-02 15:54:08"
+	response.ReffNo = "200557BN"
+	response.Struk = "This is struk array"
+	response.Msg = "Approve"
+	response.Rc = "00"
+	response.Status = "Payment Successful"
+	response.Reffid = "11119"
+
+	return response
+}
+
+func responseTopupBuy(jsonIso TopupBuyRequest) TopupBuyResponse {
+	var response TopupBuyResponse
+
+	response.Rc = "00"
+	response.Msg = "Pembelian TSEL5 0812344321 pada 03 Jul 2018, 15:03 BERHASIL.SN=1530604784. Harga Rp. 5800;"
+	response.SN = "1530604784"
+	response.Price = "5800"
+	response.Restime = "2018-05-15 15:10:05"
+
+	return response
+}
+
+func responseTopupCheck(jsonIso TopupCheckRequest) TopupCheckResponse {
+	var response TopupCheckResponse
+
+	response.Rc = "00"
+	response.Msg = "Pembelian TSEL5 0818337744 pada 03 Jul 2018, 15:03 BERHASIL. SN=1530604784. Harga Rp. 5800;"
+	response.SN = "1530604784"
+	response.Price = "5800"
+	response.Restime = "2018-05-15 15:10:05"
+
+	return response
+}

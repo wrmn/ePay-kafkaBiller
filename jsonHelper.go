@@ -56,6 +56,71 @@ func convJsonPPOBPayment(parsedIso iso8583.IsoStruct) PPOBPaymentRequest {
 	return response
 }
 
+// Conver ISO message to JSON TopupBuy
+func convJsonTopupBuy(parsedIso iso8583.IsoStruct) TopupBuyRequest {
+	var response TopupBuyRequest
+
+	log.Println("Converting ISO8583 to JSON")
+
+	emap := parsedIso.Elements.GetElements()
+
+	// Map ISO8583 format to JSON data
+	response.TransactionID = emap[48][0:25]
+	response.PartnerID = emap[48][25:41]
+	response.ProductCode = emap[48][41:57]
+	response.CustomerNo = emap[48][57:82]
+	response.MerchantCode = emap[48][82:107]
+	response.RequestTime = emap[48][107:126]
+	response.Signature = emap[62]
+
+	log.Println("Convert success")
+	return response
+}
+
+// Conver ISO message to JSON TopupCheck
+func convJsonTopupCheck(parsedIso iso8583.IsoStruct) TopupCheckRequest {
+	var response TopupCheckRequest
+
+	log.Println("Converting ISO8583 to JSON")
+
+	emap := parsedIso.Elements.GetElements()
+
+	// Map ISO8583 format to JSON data
+	response.TransactionID = emap[48][0:25]
+	response.PartnerID = emap[48][25:41]
+	response.ProductCode = emap[48][41:57]
+	response.CustomerNo = emap[48][57:82]
+	response.MerchantCode = emap[48][82:107]
+	response.RequestTime = emap[48][107:126]
+	response.Signature = emap[62]
+
+	log.Println("Convert success")
+	return response
+}
+
+// Conver ISO message to JSON PPOBStatus
+func convJsonPPOBStatus(parsedIso iso8583.IsoStruct) PPOBStatusRequest {
+	var response PPOBStatusRequest
+
+	log.Println("Converting ISO8583 to JSON")
+
+	emap := parsedIso.Elements.GetElements()
+
+	// Map ISO8583 format to JSON data
+	response.Amount, _ = strconv.Atoi(emap[4])
+	response.ReffID = emap[37]
+	response.TransactionID = emap[48][0:25]
+	response.PartnerID = emap[48][25:41]
+	response.ProductCode = emap[48][41:57]
+	response.CustomerNo = emap[48][57:82]
+	response.MerchantCode = emap[48][82:107]
+	response.RequestTime = emap[48][107:126]
+	response.Signature = emap[62]
+
+	log.Println("Convert success")
+	return response
+}
+
 // Convert ISO message to JSON
 func convertIsoToJson(parsedIso iso8583.IsoStruct) Transaction {
 	var response Transaction
