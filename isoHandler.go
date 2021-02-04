@@ -105,7 +105,7 @@ func responseIso(message string) {
 		jsonIso := convJsonPPOBInquiry(msg)
 
 		// Send JSON data to mock server
-		serverResp := responsePPOBInquiry(jsonIso)
+		serverResp := responseJsonPPOBInquiry(jsonIso)
 
 		// Convert response from JSON data to ISO8583 format
 		isoParsed = convIsoPPOBInquiry(serverResp)

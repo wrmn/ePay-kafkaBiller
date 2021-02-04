@@ -1,0 +1,4 @@
+# Product Notes
+1. Chipsakti-KafkaBiller merupakan service yang dijalankan sebagai server yang menerima event dari Kafka Service dengan topik ```chipsakti-channel```, kemudian memproses event sebagai input dan diteruskan kearah Biller. Kemudian akan menerima response dari Biller, memproses response dan mengirim response sebagai event pada Kafka Service dengan topik ```chipsakti-biller```
+2. Chipsakti-KafkaBiller menerima event dari Kafka Service dalam format ISO8583
+3. Event yang diterima akan dikonversi menjadi JSON dan dikirim ke Biller dengan ```"Content-Type": "application/x-www-form-urlencoded"```

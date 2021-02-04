@@ -20,15 +20,16 @@ func convJsonPPOBInquiry(parsedIso iso8583.IsoStruct) PPOBInquiryRequest {
 	emap := parsedIso.Elements.GetElements()
 
 	// Map ISO8583 format to JSON data
-	response.TransactionID = emap[48][0:25]
-	response.PartnerID = emap[48][25:41]
-	response.ProductCode = emap[48][41:57]
-	response.CustomerNo = emap[48][57:82]
-	response.MerchantCode = emap[48][82:107]
-	response.RequestTime = emap[48][107:126]
-	response.Periode = emap[48][126:]
+	response.TransactionID = strings.Trim(emap[48][0:25], " ")
+	response.PartnerID = strings.Trim(emap[48][25:41], " ")
+	response.ProductCode = strings.Trim(emap[48][41:57], " ")
+	response.CustomerNo = strings.Trim(emap[48][57:82], " ")
+	response.MerchantCode = strings.Trim(emap[48][82:107], " ")
+	response.RequestTime = strings.Trim(emap[48][107:126], " ")
+	response.Periode = strings.Trim(emap[48][126:], " ")
 	response.Signature = emap[62]
 
+	log.Printf("%+v\n", response)
 	log.Println("Convert success")
 	return response
 }

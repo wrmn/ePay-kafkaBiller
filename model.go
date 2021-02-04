@@ -84,7 +84,7 @@ type PPOBInquiryResponse struct {
 	Tagihan      int    `json:"tagihan"`
 	Admin        int    `json:"admin"`
 	TotalTagihan int    `json:"total_tagihan"`
-	Reffid       string `json:"reffid"`
+	Reffid       int    `json:"reffid"`
 	Data         string `json:"data"`
 	Restime      string `json:"restime"`
 }

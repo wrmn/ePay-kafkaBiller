@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 )
 
 // Handle all JSON Client request
@@ -48,6 +49,60 @@ func responseJson(jsonIso Transaction) PaymentResponse {
 	json.Unmarshal(body, &response)
 
 	// Get transactionData from mock server response
+
+	return response
+}
+
+// Get response from mock server in JSON format
+func responseJsonPPOBInquiry(jsonIso PPOBInquiryRequest) PPOBInquiryResponse {
+	var response PPOBInquiryResponse
+
+	// Initiate request body
+	//requestBody, err := json.Marshal(jsonIso)
+	//if err != nil {
+	//	log.Fatalf("Preparing body request failed. Error: %v\n", err)
+	//}
+
+	// Client setup for custom http request
+	client := &http.Client{}
+	var baseURL = "https://chipsakti-mock.herokuapp.com"
+
+	// Set data to be encoded
+	var param = url.Values{}
+	param.Set("transaction_id", jsonIso.TransactionID)
+	param.Set("partner_id", jsonIso.PartnerID)
+	param.Set("product_code", jsonIso.ProductCode)
+	param.Set("customer_no", jsonIso.CustomerNo)
+	param.Set("periode", jsonIso.Periode)
+	param.Set("merchant_code", jsonIso.MerchantCode)
+	param.Set("request_time", jsonIso.RequestTime)
+	param.Set("signature", jsonIso.Signature)
+	var payload = bytes.NewBufferString(param.Encode())
+
+	log.Printf("Request to https://chipsakti-mock.herokuapp.com/inquiry\n")
+
+	// Request to mock server
+	req, err := http.NewRequest("POST", baseURL+"/inquiry", payload)
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	if err != nil {
+		log.Fatalf("Failed to sent request to https://chipsakti-mock.herokuapp.com/inquiry. Error: %v\n", err)
+	}
+
+	// Check response from mock server
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Fatalf("Failed to get response from https://chipsakti-mock.herokuapp.com/inquiry. Error: %v\n", err)
+	}
+
+	defer resp.Body.Close()
+
+	log.Printf("Response from https://chipsakti-mock.herokuapp.com/inquiry\n")
+
+	// Read response from mock server
+	body, _ := ioutil.ReadAll(resp.Body)
+	json.Unmarshal(body, &response)
+
+	// Get PPOBInquiryResponse from mock server response
 
 	return response
 }

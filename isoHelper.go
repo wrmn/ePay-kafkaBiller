@@ -23,7 +23,7 @@ func convIsoPPOBInquiry(data PPOBInquiryResponse) iso8583.IsoStruct {
 		4:   strconv.Itoa(data.Tagihan),
 		5:   strconv.Itoa(data.Admin),
 		6:   strconv.Itoa(data.TotalTagihan),
-		37:  data.Reffid,
+		37:  strconv.Itoa(data.Reffid),
 		39:  data.Rc,
 		43:  data.Nama,
 		48:  data.Restime,
