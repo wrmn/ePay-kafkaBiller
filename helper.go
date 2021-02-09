@@ -1,7 +1,9 @@
 package main
 
 import (
+	"crypto/sha256"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -61,4 +63,12 @@ func ReadFile(fileName string) string {
 
 	return string(data)
 
+}
+
+func signatureSHA256(data string) (hash string) {
+
+	sum := sha256.Sum256([]byte(data))
+	hash = fmt.Sprintf("%x", sum)
+
+	return hash
 }

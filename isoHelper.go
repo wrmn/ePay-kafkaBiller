@@ -23,7 +23,7 @@ func convIsoPPOBInquiry(data PPOBInquiryResponse) iso8583.IsoStruct {
 		4:   strconv.Itoa(data.Tagihan),
 		5:   strconv.Itoa(data.Admin),
 		6:   strconv.Itoa(data.TotalTagihan),
-		37:  strconv.Itoa(data.Reffid),
+		37:  data.Reffid,
 		39:  data.Rc,
 		43:  data.Nama,
 		48:  data.Restime,
@@ -81,7 +81,7 @@ func convIsoPPOBPayment(data PPOBPaymentResponse) iso8583.IsoStruct {
 		120: data.Msg,
 		121: data.Produk,
 		122: data.Nopel,
-		123: data.ReffNo,
+		123: strconv.Itoa(data.ReffNo),
 	}
 
 	one := iso8583.NewISOStruct("spec1987.yml", true)

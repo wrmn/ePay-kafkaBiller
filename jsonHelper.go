@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"strconv"
 	"strings"
@@ -27,7 +28,12 @@ func convJsonPPOBInquiry(parsedIso iso8583.IsoStruct) PPOBInquiryRequest {
 	response.MerchantCode = strings.Trim(emap[48][82:107], " ")
 	response.RequestTime = strings.Trim(emap[48][107:126], " ")
 	response.Periode = strings.Trim(emap[48][126:], " ")
-	response.Signature = emap[62]
+
+	signature := fmt.Sprintf("$inquiry$%v$%v$%v$%v$unand$",
+		response.TransactionID, response.PartnerID, response.MerchantCode, response.RequestTime)
+	log.Println("Signature: ", signature)
+	response.Signature = signatureSHA256(signature)
+	log.Println("Signature encrypted: ", response.Signature)
 
 	log.Printf("%+v\n", response)
 	log.Println("Convert success")
@@ -44,15 +50,21 @@ func convJsonPPOBPayment(parsedIso iso8583.IsoStruct) PPOBPaymentRequest {
 
 	// Map ISO8583 format to JSON data
 	response.Amount, _ = strconv.Atoi(emap[4])
-	response.ReffID = emap[37]
-	response.TransactionID = emap[48][0:25]
-	response.PartnerID = emap[48][25:41]
-	response.ProductCode = emap[48][41:57]
-	response.CustomerNo = emap[48][57:82]
-	response.MerchantCode = emap[48][82:107]
-	response.RequestTime = emap[48][107:126]
-	response.Signature = emap[62]
+	response.ReffID = strings.Trim(emap[37], " ")
+	response.TransactionID = strings.Trim(emap[48][0:25], " ")
+	response.PartnerID = strings.Trim(emap[48][25:41], " ")
+	response.ProductCode = strings.Trim(emap[48][41:57], " ")
+	response.CustomerNo = strings.Trim(emap[48][57:82], " ")
+	response.MerchantCode = strings.Trim(emap[48][82:107], " ")
+	response.RequestTime = strings.Trim(emap[48][107:126], " ")
 
+	signature := fmt.Sprintf("$payment$%v$%v$%v$%v$%v$unand$",
+		response.TransactionID, response.PartnerID, response.ReffID, response.MerchantCode, response.RequestTime)
+	log.Println("Signature: ", signature)
+	response.Signature = signatureSHA256(signature)
+	log.Println("Signature encrypted: ", response.Signature)
+
+	log.Printf("%+v\n", response)
 	log.Println("Convert success")
 	return response
 }
@@ -66,14 +78,20 @@ func convJsonTopupBuy(parsedIso iso8583.IsoStruct) TopupBuyRequest {
 	emap := parsedIso.Elements.GetElements()
 
 	// Map ISO8583 format to JSON data
-	response.TransactionID = emap[48][0:25]
-	response.PartnerID = emap[48][25:41]
-	response.ProductCode = emap[48][41:57]
-	response.CustomerNo = emap[48][57:82]
-	response.MerchantCode = emap[48][82:107]
-	response.RequestTime = emap[48][107:126]
-	response.Signature = emap[62]
+	response.TransactionID = strings.Trim(emap[48][0:25], " ")
+	response.PartnerID = strings.Trim(emap[48][25:41], " ")
+	response.ProductCode = strings.Trim(emap[48][41:57], " ")
+	response.CustomerNo = strings.Trim(emap[48][57:82], " ")
+	response.MerchantCode = strings.Trim(emap[48][82:107], " ")
+	response.RequestTime = strings.Trim(emap[48][107:126], " ")
 
+	signature := fmt.Sprintf("$buy$%v$%v$%v$%v$unand$",
+		response.TransactionID, response.PartnerID, response.MerchantCode, response.RequestTime)
+	log.Println("Signature: ", signature)
+	response.Signature = signatureSHA256(signature)
+	log.Println("Signature encrypted: ", response.Signature)
+
+	log.Printf("%+v\n", response)
 	log.Println("Convert success")
 	return response
 }
@@ -87,14 +105,20 @@ func convJsonTopupCheck(parsedIso iso8583.IsoStruct) TopupCheckRequest {
 	emap := parsedIso.Elements.GetElements()
 
 	// Map ISO8583 format to JSON data
-	response.TransactionID = emap[48][0:25]
-	response.PartnerID = emap[48][25:41]
-	response.ProductCode = emap[48][41:57]
-	response.CustomerNo = emap[48][57:82]
-	response.MerchantCode = emap[48][82:107]
-	response.RequestTime = emap[48][107:126]
-	response.Signature = emap[62]
+	response.TransactionID = strings.Trim(emap[48][0:25], " ")
+	response.PartnerID = strings.Trim(emap[48][25:41], " ")
+	response.ProductCode = strings.Trim(emap[48][41:57], " ")
+	response.CustomerNo = strings.Trim(emap[48][57:82], " ")
+	response.MerchantCode = strings.Trim(emap[48][82:107], " ")
+	response.RequestTime = strings.Trim(emap[48][107:126], " ")
 
+	signature := fmt.Sprintf("$check$%v$%v$%v$%v$unand$",
+		response.TransactionID, response.PartnerID, response.MerchantCode, response.RequestTime)
+	log.Println("Signature: ", signature)
+	response.Signature = signatureSHA256(signature)
+	log.Println("Signature encrypted: ", response.Signature)
+
+	log.Printf("%+v\n", response)
 	log.Println("Convert success")
 	return response
 }
@@ -109,15 +133,21 @@ func convJsonPPOBStatus(parsedIso iso8583.IsoStruct) PPOBStatusRequest {
 
 	// Map ISO8583 format to JSON data
 	response.Amount, _ = strconv.Atoi(emap[4])
-	response.ReffID = emap[37]
-	response.TransactionID = emap[48][0:25]
-	response.PartnerID = emap[48][25:41]
-	response.ProductCode = emap[48][41:57]
-	response.CustomerNo = emap[48][57:82]
-	response.MerchantCode = emap[48][82:107]
-	response.RequestTime = emap[48][107:126]
-	response.Signature = emap[62]
+	response.ReffID = strings.Trim(emap[37], " ")
+	response.TransactionID = strings.Trim(emap[48][0:25], " ")
+	response.PartnerID = strings.Trim(emap[48][25:41], " ")
+	response.ProductCode = strings.Trim(emap[48][41:57], " ")
+	response.CustomerNo = strings.Trim(emap[48][57:82], " ")
+	response.MerchantCode = strings.Trim(emap[48][82:107], " ")
+	response.RequestTime = strings.Trim(emap[48][107:126], " ")
 
+	signature := fmt.Sprintf("$status$%v$%v$%v$%v$%v$unand$",
+		response.TransactionID, response.PartnerID, response.ReffID, response.MerchantCode, response.RequestTime)
+	log.Println("Signature: ", signature)
+	response.Signature = signatureSHA256(signature)
+	log.Println("Signature encrypted: ", response.Signature)
+
+	log.Printf("%+v\n", response)
 	log.Println("Convert success")
 	return response
 }

@@ -84,7 +84,7 @@ type PPOBInquiryResponse struct {
 	Tagihan      int    `json:"tagihan"`
 	Admin        int    `json:"admin"`
 	TotalTagihan int    `json:"total_tagihan"`
-	Reffid       int    `json:"reffid"`
+	Reffid       string `json:"reffid"`
 	Data         string `json:"data"`
 	Restime      string `json:"restime"`
 }
@@ -111,9 +111,9 @@ type PPOBPaymentResponse struct {
 	Admin        int    `json:"admin"`
 	TotalTagihan int    `json:"total_tagihan"`
 	Reffid       string `json:"reffid"`
-	TglLunas     string `json:"tgl_lunas"`
+	TglLunas     string `json:"tanggal_lunas"`
 	Struk        string `json:"struk"`
-	ReffNo       string `json:"Reff_no"`
+	ReffNo       int    `json:"reff_no"`
 }
 
 type PPOBStatusRequest struct {
@@ -138,7 +138,7 @@ type PPOBStatusResponse struct {
 	Admin        int    `json:"admin"`
 	TotalTagihan int    `json:"total_tagihan"`
 	Reffid       string `json:"reffid"`
-	TglLunas     string `json:"tgl_lunas"`
+	TglLunas     string `json:"tanggal_lunas"`
 	Struk        string `json:"struk"`
 	ReffNo       string `json:"Reff_no"`
 	Status       string `json:"status"`
