@@ -114,6 +114,7 @@ type PPOBPaymentResponse struct {
 	TglLunas     string `json:"tgl_lunas"`
 	Struk        string `json:"struk"`
 	ReffNo       string `json:"Reff_no"`
+	Restime      string `json:"restime"`
 }
 
 type PPOBStatusRequest struct {
@@ -142,6 +143,7 @@ type PPOBStatusResponse struct {
 	Struk        string `json:"struk"`
 	ReffNo       string `json:"Reff_no"`
 	Status       string `json:"status"`
+	Restime      string `json:"restime"`
 }
 
 type TopupBuyRequest struct {
@@ -170,6 +172,12 @@ type TopupCheckRequest struct {
 	MerchantCode  string `json:"merchant_code"`
 	RequestTime   string `json:"request_time"`
 	Signature     string `json:"signature"`
+}
+
+type UnsuccessfulChipsakti struct {
+	Rc      string `json:"rc"`
+	Msg     string `json:"msg"`
+	Restime string `json:"restime"`
 }
 
 type TopupCheckResponse struct {

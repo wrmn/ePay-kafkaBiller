@@ -19,18 +19,27 @@ import (
 func convIsoPPOBInquiry(data PPOBInquiryResponse) iso8583.IsoStruct {
 	log.Println("Converting JSON to ISO8583")
 
-	trans := map[int64]string{
-		4:   strconv.Itoa(data.Tagihan),
-		5:   strconv.Itoa(data.Admin),
-		6:   strconv.Itoa(data.TotalTagihan),
-		37:  data.Reffid,
-		39:  data.Rc,
-		43:  data.Nama,
-		48:  data.Restime,
-		62:  data.Data,
-		120: data.Msg,
-		121: data.Produk,
-		122: data.Nopel,
+	var trans map[int64]string
+	if data.Rc == "00" {
+		trans = map[int64]string{
+			4:   strconv.Itoa(data.Tagihan),
+			5:   strconv.Itoa(data.Admin),
+			6:   strconv.Itoa(data.TotalTagihan),
+			37:  data.Reffid,
+			39:  data.Rc,
+			43:  data.Nama,
+			48:  data.Restime,
+			62:  data.Data,
+			120: data.Msg,
+			121: data.Produk,
+			122: data.Nopel,
+		}
+	} else {
+		trans = map[int64]string{
+			39:  data.Rc,
+			48:  data.Restime,
+			120: data.Msg,
+		}
 	}
 
 	one := iso8583.NewISOStruct("spec1987.yml", true)
@@ -69,19 +78,28 @@ func convIsoPPOBInquiry(data PPOBInquiryResponse) iso8583.IsoStruct {
 func convIsoPPOBPayment(data PPOBPaymentResponse) iso8583.IsoStruct {
 	log.Println("Converting JSON to ISO8583")
 
-	trans := map[int64]string{
-		4:   strconv.Itoa(data.Tagihan),
-		5:   strconv.Itoa(data.Admin),
-		6:   strconv.Itoa(data.TotalTagihan),
-		37:  data.Reffid,
-		39:  data.Rc,
-		43:  data.Nama,
-		48:  data.TglLunas,
-		62:  data.Struk,
-		120: data.Msg,
-		121: data.Produk,
-		122: data.Nopel,
-		123: data.ReffNo,
+	var trans map[int64]string
+	if data.Rc == "00" {
+		trans = map[int64]string{
+			4:   strconv.Itoa(data.Tagihan),
+			5:   strconv.Itoa(data.Admin),
+			6:   strconv.Itoa(data.TotalTagihan),
+			37:  data.Reffid,
+			39:  data.Rc,
+			43:  data.Nama,
+			48:  data.TglLunas,
+			62:  data.Struk,
+			120: data.Msg,
+			121: data.Produk,
+			122: data.Nopel,
+			123: data.ReffNo,
+		}
+	} else {
+		trans = map[int64]string{
+			39:  data.Rc,
+			48:  data.Restime,
+			120: data.Msg,
+		}
 	}
 
 	one := iso8583.NewISOStruct("spec1987.yml", true)
@@ -120,20 +138,29 @@ func convIsoPPOBPayment(data PPOBPaymentResponse) iso8583.IsoStruct {
 func convIsoPPOBStatus(data PPOBStatusResponse) iso8583.IsoStruct {
 	log.Println("Converting JSON to ISO8583")
 
-	trans := map[int64]string{
-		4:   strconv.Itoa(data.Tagihan),
-		5:   strconv.Itoa(data.Admin),
-		6:   strconv.Itoa(data.TotalTagihan),
-		37:  data.Reffid,
-		39:  data.Rc,
-		43:  data.Nama,
-		48:  data.TglLunas,
-		62:  data.Struk,
-		120: data.Msg,
-		121: data.Produk,
-		122: data.Nopel,
-		123: data.ReffNo,
-		124: data.Status,
+	var trans map[int64]string
+	if data.Rc == "00" {
+		trans = map[int64]string{
+			4:   strconv.Itoa(data.Tagihan),
+			5:   strconv.Itoa(data.Admin),
+			6:   strconv.Itoa(data.TotalTagihan),
+			37:  data.Reffid,
+			39:  data.Rc,
+			43:  data.Nama,
+			48:  data.TglLunas,
+			62:  data.Struk,
+			120: data.Msg,
+			121: data.Produk,
+			122: data.Nopel,
+			123: data.ReffNo,
+			124: data.Status,
+		}
+	} else {
+		trans = map[int64]string{
+			39:  data.Rc,
+			48:  data.Restime,
+			120: data.Msg,
+		}
 	}
 
 	one := iso8583.NewISOStruct("spec1987.yml", true)
@@ -172,12 +199,21 @@ func convIsoPPOBStatus(data PPOBStatusResponse) iso8583.IsoStruct {
 func convIsoTopupBuy(data TopupBuyResponse) iso8583.IsoStruct {
 	log.Println("Converting JSON to ISO8583")
 
-	trans := map[int64]string{
-		39:  data.Rc,
-		48:  data.Restime,
-		120: data.Msg,
-		121: data.SN,
-		122: data.Price,
+	var trans map[int64]string
+	if data.Rc == "00" {
+		trans = map[int64]string{
+			39:  data.Rc,
+			48:  data.Restime,
+			120: data.Msg,
+			121: data.SN,
+			122: data.Price,
+		}
+	} else {
+		trans = map[int64]string{
+			39:  data.Rc,
+			48:  data.Restime,
+			120: data.Msg,
+		}
 	}
 
 	one := iso8583.NewISOStruct("spec1987.yml", true)
@@ -216,12 +252,21 @@ func convIsoTopupBuy(data TopupBuyResponse) iso8583.IsoStruct {
 func convIsoTopupCheck(data TopupCheckResponse) iso8583.IsoStruct {
 	log.Println("Converting JSON to ISO8583")
 
-	trans := map[int64]string{
-		39:  data.Rc,
-		48:  data.Restime,
-		120: data.Msg,
-		121: data.SN,
-		122: data.Price,
+	var trans map[int64]string
+	if data.Rc == "00" {
+		trans = map[int64]string{
+			39:  data.Rc,
+			48:  data.Restime,
+			120: data.Msg,
+			121: data.SN,
+			122: data.Price,
+		}
+	} else {
+		trans = map[int64]string{
+			39:  data.Rc,
+			48:  data.Restime,
+			120: data.Msg,
+		}
 	}
 
 	one := iso8583.NewISOStruct("spec1987.yml", true)
