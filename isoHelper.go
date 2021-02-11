@@ -81,7 +81,7 @@ func convIsoPPOBPayment(data PPOBPaymentResponse) iso8583.IsoStruct {
 		120: data.Msg,
 		121: data.Produk,
 		122: data.Nopel,
-		123: strconv.Itoa(data.ReffNo),
+		123: data.ReffNo,
 	}
 
 	one := iso8583.NewISOStruct("spec1987.yml", true)
