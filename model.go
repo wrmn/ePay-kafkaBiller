@@ -102,19 +102,19 @@ type PPOBPaymentRequest struct {
 }
 
 type PPOBPaymentResponse struct {
-	Rc           string `json:"rc"`
-	Msg          string `json:"msg"`
-	Produk       string `json:"produk"`
-	Nopel        string `json:"nopel"`
-	Nama         string `json:"nama"`
-	Tagihan      int    `json:"tagihan"`
-	Admin        int    `json:"admin"`
-	TotalTagihan int    `json:"total_tagihan"`
-	Reffid       string `json:"reffid"`
-	TglLunas     string `json:"tgl_lunas"`
-	Struk        string `json:"struk"`
-	ReffNo       string `json:"Reff_no"`
-	Restime      string `json:"restime"`
+	Rc           string   `json:"rc"`
+	Msg          string   `json:"msg"`
+	Produk       string   `json:"produk"`
+	Nopel        string   `json:"nopel"`
+	Nama         string   `json:"nama"`
+	Tagihan      int      `json:"tagihan"`
+	Admin        int      `json:"admin"`
+	TotalTagihan int      `json:"total_tagihan"`
+	Reffid       string   `json:"reffid"`
+	TglLunas     string   `json:"tgl_lunas"`
+	Struk        []string `json:"struk"`
+	ReffNo       string   `json:"Reff_no"`
+	Restime      string   `json:"restime"`
 }
 
 type PPOBStatusRequest struct {
@@ -130,20 +130,20 @@ type PPOBStatusRequest struct {
 }
 
 type PPOBStatusResponse struct {
-	Rc           string `json:"rc"`
-	Msg          string `json:"msg"`
-	Produk       string `json:"produk"`
-	Nopel        string `json:"nopel"`
-	Nama         string `json:"nama"`
-	Tagihan      int    `json:"tagihan"`
-	Admin        int    `json:"admin"`
-	TotalTagihan int    `json:"total_tagihan"`
-	Reffid       string `json:"reffid"`
-	TglLunas     string `json:"tgl_lunas"`
-	Struk        string `json:"struk"`
-	ReffNo       string `json:"Reff_no"`
-	Status       string `json:"status"`
-	Restime      string `json:"restime"`
+	Rc           string   `json:"rc"`
+	Msg          string   `json:"msg"`
+	Produk       string   `json:"produk"`
+	Nopel        string   `json:"nopel"`
+	Nama         string   `json:"nama"`
+	Tagihan      int      `json:"tagihan"`
+	Admin        int      `json:"admin"`
+	TotalTagihan int      `json:"total_tagihan"`
+	Reffid       string   `json:"reffid"`
+	TglLunas     string   `json:"tgl_lunas"`
+	Struk        []string `json:"struk"`
+	ReffNo       string   `json:"Reff_no"`
+	Status       string   `json:"status"`
+	Restime      string   `json:"restime"`
 }
 
 type TopupBuyRequest struct {

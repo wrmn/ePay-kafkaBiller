@@ -78,6 +78,8 @@ func convIsoPPOBInquiry(data PPOBInquiryResponse) iso8583.IsoStruct {
 func convIsoPPOBPayment(data PPOBPaymentResponse) iso8583.IsoStruct {
 	log.Println("Converting JSON to ISO8583")
 
+	struk := strings.Join(data.Struk, ",")
+
 	var trans map[int64]string
 	if data.Rc == "00" {
 		trans = map[int64]string{
@@ -88,7 +90,7 @@ func convIsoPPOBPayment(data PPOBPaymentResponse) iso8583.IsoStruct {
 			39:  data.Rc,
 			43:  data.Nama,
 			48:  data.TglLunas,
-			62:  data.Struk,
+			62:  struk,
 			120: data.Msg,
 			121: data.Produk,
 			122: data.Nopel,
@@ -138,6 +140,7 @@ func convIsoPPOBPayment(data PPOBPaymentResponse) iso8583.IsoStruct {
 func convIsoPPOBStatus(data PPOBStatusResponse) iso8583.IsoStruct {
 	log.Println("Converting JSON to ISO8583")
 
+	struk := strings.Join(data.Struk, ",")
 	var trans map[int64]string
 	if data.Rc == "00" {
 		trans = map[int64]string{
@@ -148,7 +151,7 @@ func convIsoPPOBStatus(data PPOBStatusResponse) iso8583.IsoStruct {
 			39:  data.Rc,
 			43:  data.Nama,
 			48:  data.TglLunas,
-			62:  data.Struk,
+			62:  struk,
 			120: data.Msg,
 			121: data.Produk,
 			122: data.Nopel,
