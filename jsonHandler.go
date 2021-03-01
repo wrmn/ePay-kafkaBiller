@@ -54,6 +54,15 @@ func responseJson(jsonIso Transaction) PaymentResponse {
 	return response
 }
 
+func mockGo(jsonIso GoRoutineReq) GoRoutineRes {
+	var response GoRoutineRes
+
+	req := jsonIso.Data
+	response.Response = "Response: " + req
+
+	return response
+}
+
 // Get response from mock server in JSON format
 func responseJsonPPOBInquiry(jsonIso PPOBInquiryRequest) PPOBInquiryResponse {
 	var response PPOBInquiryResponse

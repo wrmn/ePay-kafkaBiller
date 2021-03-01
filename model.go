@@ -187,3 +187,11 @@ type TopupCheckResponse struct {
 	SN      string `json:"sn"`
 	Price   string `json:"price"`
 }
+
+type GoRoutineReq struct {
+	Data string `json:"data"`
+}
+
+type GoRoutineRes struct {
+	Response string `json:"response"`
+}

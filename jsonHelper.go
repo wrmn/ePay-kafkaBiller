@@ -12,6 +12,17 @@ import (
 // Any helper to process JSON data
 // converter, formatter, etc
 
+func convGo(parsedIso string) GoRoutineReq {
+
+	var response GoRoutineReq
+
+	log.Println("Converting to JSON")
+
+	response.Data = parsedIso
+
+	return response
+}
+
 // Conver ISO message to JSON PPOBInquiry
 func convJsonPPOBInquiry(parsedIso iso8583.IsoStruct) PPOBInquiryRequest {
 	var response PPOBInquiryRequest

@@ -83,6 +83,40 @@ func sendIso(writer http.ResponseWriter, request *http.Request) {
 
 }
 
+func respIso() {
+
+	for {
+		select {
+		case x := <-consumerChan:
+			//var response GoRoutineRes
+			msg := x
+
+			// convert string to json request
+			jsonIso := convGo(msg)
+			fmt.Printf("jsonIso: %v\n", jsonIso)
+
+			// send JSON data to mock server
+			serverResp := mockGo(jsonIso)
+			fmt.Printf("serverResp: %v\n", serverResp)
+
+			// convert json to string
+			isoParsed := convIsoGo(serverResp)
+			fmt.Printf("isoParsed: %v\n", isoParsed)
+
+			// send response to kafka
+			fmt.Println("send response to kafka")
+			billerChanRes <- isoParsed
+
+			//done with worker
+			fmt.Println("done")
+
+		default:
+			continue
+		}
+	}
+
+}
+
 // Get response from mock server in ISO Format
 func responseIso(message string) {
 

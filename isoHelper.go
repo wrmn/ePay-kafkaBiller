@@ -15,6 +15,16 @@ import (
 // Any helper to process ISO data
 // converter, formatter, etc
 
+func convIsoGo(data GoRoutineRes) string {
+	log.Println("Convert JSON to String")
+
+	var one string
+
+	one = data.Response
+
+	return one
+}
+
 // Convert JSON data to ISO8583 format
 func convIsoPPOBInquiry(data PPOBInquiryResponse) iso8583.IsoStruct {
 	log.Println("Converting JSON to ISO8583")

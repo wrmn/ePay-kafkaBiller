@@ -4,7 +4,13 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sync"
 )
+
+var billerChanReq = make(chan string)
+var billerChanRes = make(chan string)
+var producerChan = make(chan string)
+var consumerChan = make(chan string)
 
 func main() {
 	// Service log setup
@@ -15,12 +21,30 @@ func main() {
 	log.SetOutput(file)
 
 	// Service setup
-	done := doConsume(broker, group)
 	router := server()
-	serverErr := http.ListenAndServe(":6020", router)
-	done <- true
+	go func() {
+		log.Fatal(http.ListenAndServe(":6020", router))
+	}()
 
-	if serverErr != nil {
-		log.Fatal(serverErr)
+	//create wait group
+	var wg sync.WaitGroup
+
+	//consumer routine
+	go consumer()
+	go respIso()
+
+	//producer routine
+	for {
+		select {
+		case x := <-billerChanRes:
+			log.Println("New request in billerChan is ready to produce")
+			wg.Add(1)
+			go producer(&wg, producerChan)
+			producerChan <- x
+			wg.Wait()
+		default:
+			continue
+		}
 	}
+
 }
