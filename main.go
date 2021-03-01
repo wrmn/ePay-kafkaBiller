@@ -7,8 +7,7 @@ import (
 	"sync"
 )
 
-var billerChanReq = make(chan string)
-var billerChanRes = make(chan string)
+var billerChan = make(chan string)
 var producerChan = make(chan string)
 var consumerChan = make(chan string)
 
@@ -36,7 +35,7 @@ func main() {
 	//producer routine
 	for {
 		select {
-		case x := <-billerChanRes:
+		case x := <-billerChan:
 			log.Println("New request in billerChan is ready to produce")
 			wg.Add(1)
 			go producer(&wg, producerChan)

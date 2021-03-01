@@ -88,24 +88,10 @@ func respIso() {
 	for {
 		select {
 		case x := <-consumerChan:
-			//var response GoRoutineRes
+
 			msg := x
-
-			// convert string to json request
-			jsonIso := convGo(msg)
-			fmt.Printf("jsonIso: %v\n", jsonIso)
-
-			// send JSON data to mock server
-			serverResp := mockGo(jsonIso)
-			fmt.Printf("serverResp: %v\n", serverResp)
-
-			// convert json to string
-			isoParsed := convIsoGo(serverResp)
-			fmt.Printf("isoParsed: %v\n", isoParsed)
-
-			// send response to kafka
-			fmt.Println("send response to kafka")
-			billerChanRes <- isoParsed
+			isoParsed := responseIso(msg)
+			billerChan <- isoParsed
 
 			//done with worker
 			fmt.Println("done")
@@ -118,7 +104,7 @@ func respIso() {
 }
 
 // Get response from mock server in ISO Format
-func responseIso(message string) {
+func responseIso(message string) string {
 
 	var response Iso8583
 	data := message[4:]
@@ -215,11 +201,6 @@ func responseIso(message string) {
 	file := CreateFile("storage/response/"+filename, event)
 	log.Println("File created: ", file)
 
-	// Produce event
-	err = doProducer(broker, topic4, event)
-	if err != nil {
-		log.Printf("Error producing message %v\n", message)
-		log.Println(err)
-	}
+	return event
 
 }
