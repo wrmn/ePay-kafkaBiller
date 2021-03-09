@@ -2,9 +2,7 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
-	"net/http"
 	"strconv"
 	"time"
 
@@ -12,90 +10,26 @@ import (
 	"github.com/rivo/uniseg"
 )
 
-// Handle all ISO Client request
+// Handler to new consumed request in consumerChan and send new response to billerChan
+func requestHandler() {
 
-// Process ISO message in body request
-func sendIso(writer http.ResponseWriter, request *http.Request) {
-
-	var response Response
-	var iso Iso8583
-
-	// Read body request
-	reqBody, _ := ioutil.ReadAll(request.Body)
-	req := string(reqBody)
-	log.Printf("ISO Message: %v\n", req)
-
-	// Produce event
-	err := doProducer(broker, topic1, req)
-
-	if err != nil {
-		errDesc := fmt.Sprintf("Failed sent to Kafka\nError: %v", err)
-		log.Println(err)
-		response.ResponseCode, response.ResponseDescription = 500, errDesc
-		jsonFormatter(writer, response, 500)
-	} else {
-		// Read response
-		msg, err := consumeResponse(broker, group, []string{topic2})
-		if err != nil {
-			errDesc := fmt.Sprintf("Failed to get response from Kafka\nError: %v", err)
-			log.Println(err)
-			response.ResponseCode, response.ResponseDescription = 500, errDesc
-			jsonFormatter(writer, response, 500)
-		} else {
-
-			// Return empty response
-			if msg == "" {
-				errDesc := "Got empty response"
-				log.Println(errDesc)
-				response.ResponseCode, response.ResponseDescription = 500, errDesc
-				jsonFormatter(writer, response, 500)
-			} else {
-
-				// Parse response string to ISO8583 data
-				header := msg[0:4]
-				data := msg[4:]
-
-				isoStruct := iso8583.NewISOStruct("spec1987.yml", false)
-
-				isoParsed, err := isoStruct.Parse(data)
-				if err != nil {
-					log.Printf("Error parsing iso message\nError: %v", err)
-				}
-
-				iso.Header, _ = strconv.Atoi(header)
-				iso.MTI = isoParsed.Mti.String()
-				iso.Hex, _ = iso8583.BitMapArrayToHex(isoParsed.Bitmap)
-
-				iso.Message, err = isoParsed.ToString()
-				if err != nil {
-					log.Printf("Iso Parsed failed convert to string.\nError: %v", err)
-				}
-
-				//event := header + iso.Message
-
-				iso.ResponseStatus.ResponseCode, iso.ResponseStatus.ResponseDescription = 200, "Success"
-				jsonFormatter(writer, iso, 200)
-
-			}
-
-		}
-	}
-
-}
-
-func respIso() {
-
+	// loop for checking if there is any new request from Consumer (Kafka) that has been sent to consumerChan
 	for {
 		select {
-		case x := <-consumerChan:
+		// execute if there is a new request in consumerChan
+		case newRequest := <-consumerChan:
 
-			msg := x
-			isoParsed := responseIso(msg)
+			// Send new request to `Biller` and get response that ready to produce
+			msg := newRequest
+			isoParsed := getResponse(msg)
+
+			// Send new response to billerChan
 			billerChan <- isoParsed
 
-			//done with worker
-			fmt.Println("done")
+			// Done with requestHandler
+			log.Println("New request handled")
 
+		// keep looping if there is none new request
 		default:
 			continue
 		}
@@ -103,14 +37,14 @@ func respIso() {
 
 }
 
-// Get response from mock server in ISO Format
-func responseIso(message string) string {
+// Return response from `Biller` in ISO8583 Format
+func getResponse(message string) (isoResponse string) {
 
 	var response Iso8583
 	data := message[4:]
 
+	// Parse new ISO8583 message to ISO Struct
 	isoStruct := iso8583.NewISOStruct("spec1987.yml", true)
-
 	msg, err := isoStruct.Parse(data)
 	if err != nil {
 		log.Println(err)
@@ -118,67 +52,64 @@ func responseIso(message string) string {
 
 	var isoParsed iso8583.IsoStruct
 
-	// Check processing code
+	// Check processing code and send request to appropriate `Biller` endpoints
 	pcode := msg.Elements.GetElements()[3]
-	if pcode == "380001" {
+	switch pcode {
+	// Process PPOB Inquiry request
+	case "380001":
 		// Convert ISO message to JSON format
-		jsonIso := convJsonPPOBInquiry(msg)
+		jsonIso := getJsonPPOBInquiry(msg)
 
-		// Send JSON data to mock server
+		// Send JSON data to Biller
 		serverResp := responseJsonPPOBInquiry(jsonIso)
 
 		// Convert response from JSON data to ISO8583 format
-		isoParsed = convIsoPPOBInquiry(serverResp)
+		isoParsed = getIsoPPOBInquiry(serverResp)
 
-		isoParsed.AddField(3, "380001")
-	} else if pcode == "810001" {
+	// Process PPOB Payment request
+	case "810001":
 		// Convert ISO message to JSON format
-		jsonIso := convJsonPPOBPayment(msg)
+		jsonIso := getJsonPPOBPayment(msg)
 
-		// Send JSON data to mock server
+		// Send JSON data to Biller
 		serverResp := responsePPOBPayment(jsonIso)
 
 		// Convert response from JSON data to ISO8583 format
-		isoParsed = convIsoPPOBPayment(serverResp)
+		isoParsed = getIsoPPOBPayment(serverResp)
 
-		isoParsed.AddField(3, "810001")
-	} else if pcode == "380002" {
+	// Process PPOB Status request
+	case "380002":
 		// Convert ISO message to JSON format
-		jsonIso := convJsonPPOBStatus(msg)
+		jsonIso := getJsonPPOBStatus(msg)
 
-		// Send JSON data to mock server
+		// Send JSON data to Biller
 		serverResp := responsePPOBStatus(jsonIso)
 
 		// Convert response from JSON data to ISO8583 format
-		isoParsed = convIsoPPOBStatus(serverResp)
+		isoParsed = getIsoPPOBStatus(serverResp)
 
-		isoParsed.AddField(3, "380002")
-	} else if pcode == "810002" {
+	// Process Topup Buy
+	case "810002":
 		// Convert ISO message to JSON format
-		jsonIso := convJsonTopupBuy(msg)
+		jsonIso := getJsonTopupBuy(msg)
 
-		// Send JSON data to mock server
+		// Send JSON data to Biller
 		serverResp := responseTopupBuy(jsonIso)
 
 		// Convert response from JSON data to ISO8583 format
-		isoParsed = convIsoTopupBuy(serverResp)
+		isoParsed = getIsoTopupBuy(serverResp)
 
-		isoParsed.AddField(3, "810002")
-	} else if pcode == "380003" {
+	// Process Topup Check
+	case "380003":
 		// Convert ISO message to JSON format
-		jsonIso := convJsonTopupCheck(msg)
+		jsonIso := getJsonTopupCheck(msg)
 
-		// Send JSON data to mock server
+		// Send JSON data to Biller
 		serverResp := responseTopupCheck(jsonIso)
 
 		// Convert response from JSON data to ISO8583 format
-		isoParsed = convIsoTopupCheck(serverResp)
-
-		isoParsed.AddField(3, "380003")
+		isoParsed = getIsoTopupCheck(serverResp)
 	}
-
-	// Change MTI response
-	isoParsed.AddMTI("0210")
 
 	isoMessage, _ := isoParsed.ToString()
 	isoHeader := fmt.Sprintf("%04d", uniseg.GraphemeClusterCount(isoMessage))
@@ -188,19 +119,19 @@ func responseIso(message string) string {
 	response.Hex, _ = iso8583.BitMapArrayToHex(isoParsed.Bitmap)
 	response.Message = isoMessage
 
-	event := isoHeader + isoMessage
+	isoResponse = isoHeader + isoMessage
 	log.Printf("\n\nResponse: \n\tHeader: %v\n\tMTI: %v\n\tHex: %v\n\tIso Message: %v\n\tFull Message: %v\n\n",
 		response.Header,
 		response.MTI,
 		response.Hex,
 		response.Message,
-		event)
+		isoResponse)
 
 	// create file from response
 	filename := "Response_to_" + isoParsed.Elements.GetElements()[3] + "@" + fmt.Sprintf(time.Now().Format("2006-01-02 15:04:05"))
-	file := CreateFile("storage/response/"+filename, event)
+	file := CreateFile("storage/response/"+filename, isoResponse)
 	log.Println("File created: ", file)
 
-	return event
+	return isoResponse
 
 }

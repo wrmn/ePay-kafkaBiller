@@ -8,17 +8,19 @@ import (
 	"sync"
 )
 
-func producer(wg *sync.WaitGroup, message <-chan string) {
-	fmt.Println("Producer started!")
+func producer(wg *sync.WaitGroup, broker string, topic string, message <-chan string) {
+	log.Println("Producer started!")
 
+	// Setting up Consumer (Kafka) config
 	p, err := kafka.NewProducer(&kafka.ConfigMap{
-		"bootstrap.servers": "localhost:9092",
+		"bootstrap.servers": broker,
 	})
 	if err != nil {
 		panic(err)
 	}
 	defer p.Close()
 
+	// Run go routine for produce available event to Kafka
 	go func() {
 		for e := range p.Events() {
 			switch ev := e.(type) {
@@ -26,26 +28,32 @@ func producer(wg *sync.WaitGroup, message <-chan string) {
 				if ev.TopicPartition.Error != nil {
 					log.Printf("Produce failed: %v\n", ev.TopicPartition)
 				} else {
-					log.Printf("Produced message to %v\n", ev.TopicPartition)
+					log.Printf("Produced message to %v. Message: %s (Header: %s)\n", ev.TopicPartition, ev.Value, ev.Headers)
 				}
 			}
 		}
 	}()
 
-	// Produce messages to topic
-	topic := "goroutine-biller"
+	// Setting up kafka message to get ready to be produced
+	// message to be produced
 	msg := <-message
+
+	// header for the message
+	header := map[string]string{
+		"key":   "testHeader",
+		"value": "headers value are binary",
+	}
 	p.Produce(&kafka.Message{
 		TopicPartition: kafka.TopicPartition{Topic: &topic, Partition: kafka.PartitionAny},
 		Value:          []byte(msg),
+		Headers:        []kafka.Header{{Key: header["key"], Value: []byte(header["value"])}},
 	}, nil)
 
 	// Wait for message deliveries before shutting down
 	p.Flush(3 * 1000)
+	log.Println("Producer closing!")
 
-	fmt.Println("Producer closing!")
-
-	//done with worker
+	// Done with worker
 	wg.Done()
 }
 

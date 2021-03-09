@@ -4,7 +4,6 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -40,28 +39,6 @@ func CreateFile(fileName string, content string) string {
 	}
 
 	return fileName
-
-}
-
-// Check existing file
-func CheckExist(namaFile string) bool {
-
-	info, err := os.Stat(namaFile)
-	if os.IsNotExist(err) {
-		return false
-	}
-	return !info.IsDir()
-}
-
-// Read existing file
-func ReadFile(fileName string) string {
-
-	data, err := ioutil.ReadFile(fileName)
-	if err != nil {
-		log.Panicf("failed reading data from file: %s", err)
-	}
-
-	return string(data)
 
 }
 

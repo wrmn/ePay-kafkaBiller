@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"io/ioutil"
 	"log"
 	"sort"
@@ -12,389 +11,262 @@ import (
 	"github.com/mofax/iso8583"
 )
 
-// Any helper to process ISO data
-// converter, formatter, etc
+// Return ISO Message by converting data from map[int]string
+func getIso(data map[int]string, mti string) (iso iso8583.IsoStruct) {
+	log.Println("Converting to ISO8583...")
 
-func convIsoGo(data GoRoutineRes) string {
-	log.Println("Convert JSON to String")
-
-	var one string
-
-	one = data.Response
-
-	return one
-}
-
-// Convert JSON data to ISO8583 format
-func convIsoPPOBInquiry(data PPOBInquiryResponse) iso8583.IsoStruct {
-	log.Println("Converting JSON to ISO8583")
-
-	var trans map[int64]string
-	if data.Rc == "00" {
-		trans = map[int64]string{
-			4:   strconv.Itoa(data.Tagihan),
-			5:   strconv.Itoa(data.Admin),
-			6:   strconv.Itoa(data.TotalTagihan),
-			37:  data.Reffid,
-			39:  data.Rc,
-			43:  data.Nama,
-			48:  data.Restime,
-			62:  data.Data,
-			120: data.Msg,
-			121: data.Produk,
-			122: data.Nopel,
-		}
-	} else {
-		trans = map[int64]string{
-			39:  data.Rc,
-			48:  data.Restime,
-			120: data.Msg,
-		}
-	}
-
-	one := iso8583.NewISOStruct("spec1987.yml", true)
+	isoStruct := iso8583.NewISOStruct("spec1987.yml", true)
 	spec, _ := specFromFile("spec1987.yml")
 
-	if one.Mti.String() != "" {
+	if isoStruct.Mti.String() != "" {
 		log.Printf("Empty generates invalid MTI")
 	}
 
-	for field, data := range trans {
+	// Compare request data length and spec data length, add padding if different
+	for field, data := range data {
 
-		fieldSpec := spec.fields[int(field)]
+		fieldSpec := spec.fields[field]
 
+		// Check length for field with Length Type "fixed"
 		if fieldSpec.LenType == "fixed" {
-			lengthValidate, _ := iso8583.FixedLengthIntegerValidator(int(field), fieldSpec.MaxLen, data)
+			lengthValidate, _ := iso8583.FixedLengthIntegerValidator(field, fieldSpec.MaxLen, data)
 
 			if lengthValidate == false {
 				if fieldSpec.ContentType == "n" {
+					// Add padding for numeric field
 					data = leftPad(data, fieldSpec.MaxLen, "0")
 				} else {
+					// Add padding for non-numeric field
 					data = rightPad(data, fieldSpec.MaxLen, " ")
 				}
 			}
 		}
 
-		one.AddField(field, data)
-
+		// Add data to isoStruct
+		isoStruct.AddField(int64(field), data)
 	}
 
-	printSortedDE(one)
+	// Add MTI to isoStruct
+	isoStruct.AddMTI(mti)
+
+	// Logging isoStruct field and value
+	printSortedDE(isoStruct)
 	log.Println("Convert Success")
-	return one
+
+	return isoStruct
+}
+
+// Return ISO message for PPOB Inquiry JSON response
+func getIsoPPOBInquiry(jsonResponse PPOBInquiryResponse) iso8583.IsoStruct {
+
+	log.Println("Converting PPOB Inquiry JSON Response to ISO8583")
+	log.Printf("PPOB Inquiry Response (JSON): %v\n", jsonResponse)
+
+	// Assign data to map and add MTI
+	var response map[int]string
+	if jsonResponse.Rc == "00" {
+		response = map[int]string{
+			4:   strconv.Itoa(jsonResponse.Tagihan),
+			5:   strconv.Itoa(jsonResponse.Admin),
+			6:   strconv.Itoa(jsonResponse.TotalTagihan),
+			37:  jsonResponse.Reffid,
+			39:  jsonResponse.Rc,
+			43:  jsonResponse.Nama,
+			48:  jsonResponse.Restime,
+			62:  jsonResponse.Data,
+			120: jsonResponse.Msg,
+			121: jsonResponse.Produk,
+			122: jsonResponse.Nopel,
+		}
+	} else {
+		response = map[int]string{
+			39:  jsonResponse.Rc,
+			48:  jsonResponse.Restime,
+			120: jsonResponse.Msg,
+		}
+	}
+	mti := "0210"
+
+	// Converting request map to isoStruct
+	isoStruct := getIso(response, mti)
+
+	// Adding PAN for PPOB Inquiry Response
+	isoStruct.AddField(3, "380001")
+	isoMessage, _ := isoStruct.ToString()
+
+	log.Println("Convert Success")
+	log.Printf("PPOB Inquiry Response (ISO8583): %s\n", isoMessage)
+	return isoStruct
 
 }
 
-func convIsoPPOBPayment(data PPOBPaymentResponse) iso8583.IsoStruct {
-	log.Println("Converting JSON to ISO8583")
+// Return ISO message for PPOB Payment JSON response
+func getIsoPPOBPayment(jsonResponse PPOBPaymentResponse) iso8583.IsoStruct {
 
-	struk := strings.Join(data.Struk, ",")
+	log.Println("Converting PPOB Payment JSON Response to ISO8583")
+	log.Printf("PPOB Payment Response (JSON): %v\n", jsonResponse)
 
-	var trans map[int64]string
-	if data.Rc == "00" {
-		trans = map[int64]string{
-			4:   strconv.Itoa(data.Tagihan),
-			5:   strconv.Itoa(data.Admin),
-			6:   strconv.Itoa(data.TotalTagihan),
-			37:  data.Reffid,
-			39:  data.Rc,
-			43:  data.Nama,
-			48:  data.TglLunas,
+	// Assign data to map and add MTI
+	struk := strings.Join(jsonResponse.Struk, ",")
+	var response map[int]string
+	if jsonResponse.Rc == "00" {
+		response = map[int]string{
+			4:   strconv.Itoa(jsonResponse.Tagihan),
+			5:   strconv.Itoa(jsonResponse.Admin),
+			6:   strconv.Itoa(jsonResponse.TotalTagihan),
+			37:  jsonResponse.Reffid,
+			39:  jsonResponse.Rc,
+			43:  jsonResponse.Nama,
+			48:  jsonResponse.TglLunas,
 			62:  struk,
-			120: data.Msg,
-			121: data.Produk,
-			122: data.Nopel,
-			123: data.ReffNo,
+			120: jsonResponse.Msg,
+			121: jsonResponse.Produk,
+			122: jsonResponse.Nopel,
+			123: jsonResponse.ReffNo,
 		}
 	} else {
-		trans = map[int64]string{
-			39:  data.Rc,
-			48:  data.Restime,
-			120: data.Msg,
+		response = map[int]string{
+			39:  jsonResponse.Rc,
+			48:  jsonResponse.Restime,
+			120: jsonResponse.Msg,
 		}
 	}
+	mti := "0210"
 
-	one := iso8583.NewISOStruct("spec1987.yml", true)
-	spec, _ := specFromFile("spec1987.yml")
+	// Converting request map to isoStruct
+	isoStruct := getIso(response, mti)
 
-	if one.Mti.String() != "" {
-		log.Printf("Empty generates invalid MTI")
-	}
+	// Adding PAN for PPOB Payment Response
+	isoStruct.AddField(3, "810001")
+	isoMessage, _ := isoStruct.ToString()
 
-	for field, data := range trans {
-
-		fieldSpec := spec.fields[int(field)]
-
-		if fieldSpec.LenType == "fixed" {
-			lengthValidate, _ := iso8583.FixedLengthIntegerValidator(int(field), fieldSpec.MaxLen, data)
-
-			if lengthValidate == false {
-				if fieldSpec.ContentType == "n" {
-					data = leftPad(data, fieldSpec.MaxLen, "0")
-				} else {
-					data = rightPad(data, fieldSpec.MaxLen, " ")
-				}
-			}
-		}
-
-		one.AddField(field, data)
-
-	}
-
-	printSortedDE(one)
 	log.Println("Convert Success")
-	return one
+	log.Printf("PPOB Payment Response (ISO8583): %s\n", isoMessage)
+	return isoStruct
 
 }
 
-func convIsoPPOBStatus(data PPOBStatusResponse) iso8583.IsoStruct {
-	log.Println("Converting JSON to ISO8583")
+// Return ISO message for PPOB Status JSON response
+func getIsoPPOBStatus(jsonResponse PPOBStatusResponse) iso8583.IsoStruct {
 
-	struk := strings.Join(data.Struk, ",")
-	var trans map[int64]string
-	if data.Rc == "00" {
-		trans = map[int64]string{
-			4:   strconv.Itoa(data.Tagihan),
-			5:   strconv.Itoa(data.Admin),
-			6:   strconv.Itoa(data.TotalTagihan),
-			37:  data.Reffid,
-			39:  data.Rc,
-			43:  data.Nama,
-			48:  data.TglLunas,
+	log.Println("Converting PPOB Status JSON Response to ISO8583")
+	log.Printf("PPOB Status Response (JSON): %v\n", jsonResponse)
+
+	// Assign data to map and add MTI
+	struk := strings.Join(jsonResponse.Struk, ",")
+	var response map[int]string
+	if jsonResponse.Rc == "00" {
+		response = map[int]string{
+			4:   strconv.Itoa(jsonResponse.Tagihan),
+			5:   strconv.Itoa(jsonResponse.Admin),
+			6:   strconv.Itoa(jsonResponse.TotalTagihan),
+			37:  jsonResponse.Reffid,
+			39:  jsonResponse.Rc,
+			43:  jsonResponse.Nama,
+			48:  jsonResponse.TglLunas,
 			62:  struk,
-			120: data.Msg,
-			121: data.Produk,
-			122: data.Nopel,
-			123: data.ReffNo,
-			124: data.Status,
+			120: jsonResponse.Msg,
+			121: jsonResponse.Produk,
+			122: jsonResponse.Nopel,
+			123: jsonResponse.ReffNo,
+			124: jsonResponse.Status,
 		}
 	} else {
-		trans = map[int64]string{
-			39:  data.Rc,
-			48:  data.Restime,
-			120: data.Msg,
+		response = map[int]string{
+			39:  jsonResponse.Rc,
+			48:  jsonResponse.Restime,
+			120: jsonResponse.Msg,
 		}
 	}
+	mti := "0210"
 
-	one := iso8583.NewISOStruct("spec1987.yml", true)
-	spec, _ := specFromFile("spec1987.yml")
+	// Converting request map to isoStruct
+	isoStruct := getIso(response, mti)
 
-	if one.Mti.String() != "" {
-		log.Printf("Empty generates invalid MTI")
-	}
+	// Adding PAN for PPOB Status Response
+	isoStruct.AddField(3, "380002")
+	isoMessage, _ := isoStruct.ToString()
 
-	for field, data := range trans {
-
-		fieldSpec := spec.fields[int(field)]
-
-		if fieldSpec.LenType == "fixed" {
-			lengthValidate, _ := iso8583.FixedLengthIntegerValidator(int(field), fieldSpec.MaxLen, data)
-
-			if lengthValidate == false {
-				if fieldSpec.ContentType == "n" {
-					data = leftPad(data, fieldSpec.MaxLen, "0")
-				} else {
-					data = rightPad(data, fieldSpec.MaxLen, " ")
-				}
-			}
-		}
-
-		one.AddField(field, data)
-
-	}
-
-	printSortedDE(one)
 	log.Println("Convert Success")
-	return one
+	log.Printf("PPOB Status Response (ISO8583): %s\n", isoMessage)
+	return isoStruct
 
 }
 
-func convIsoTopupBuy(data TopupBuyResponse) iso8583.IsoStruct {
-	log.Println("Converting JSON to ISO8583")
+// Return ISO message for Topup Buy JSON response
+func getIsoTopupBuy(jsonResponse TopupBuyResponse) iso8583.IsoStruct {
 
-	var trans map[int64]string
-	if data.Rc == "00" {
-		trans = map[int64]string{
-			39:  data.Rc,
-			48:  data.Restime,
-			120: data.Msg,
-			121: data.SN,
-			122: data.Price,
+	log.Println("Converting Topup Buy JSON Response to ISO8583")
+	log.Printf("Topup Buy Response (JSON): %v\n", jsonResponse)
+
+	// Assign data to map and add MTI
+	var response map[int]string
+	if jsonResponse.Rc == "00" {
+		response = map[int]string{
+			39:  jsonResponse.Rc,
+			48:  jsonResponse.Restime,
+			120: jsonResponse.Msg,
+			121: jsonResponse.SN,
+			122: jsonResponse.Price,
 		}
 	} else {
-		trans = map[int64]string{
-			39:  data.Rc,
-			48:  data.Restime,
-			120: data.Msg,
+		response = map[int]string{
+			39:  jsonResponse.Rc,
+			48:  jsonResponse.Restime,
+			120: jsonResponse.Msg,
 		}
 	}
+	mti := "0210"
 
-	one := iso8583.NewISOStruct("spec1987.yml", true)
-	spec, _ := specFromFile("spec1987.yml")
+	// Converting request map to isoStruct
+	isoStruct := getIso(response, mti)
 
-	if one.Mti.String() != "" {
-		log.Printf("Empty generates invalid MTI")
-	}
+	// Adding PAN for Topup Buy Response
+	isoStruct.AddField(3, "810002")
+	isoMessage, _ := isoStruct.ToString()
 
-	for field, data := range trans {
-
-		fieldSpec := spec.fields[int(field)]
-
-		if fieldSpec.LenType == "fixed" {
-			lengthValidate, _ := iso8583.FixedLengthIntegerValidator(int(field), fieldSpec.MaxLen, data)
-
-			if lengthValidate == false {
-				if fieldSpec.ContentType == "n" {
-					data = leftPad(data, fieldSpec.MaxLen, "0")
-				} else {
-					data = rightPad(data, fieldSpec.MaxLen, " ")
-				}
-			}
-		}
-
-		one.AddField(field, data)
-
-	}
-
-	printSortedDE(one)
 	log.Println("Convert Success")
-	return one
+	log.Printf("Topup Buy Response (ISO8583): %s\n", isoMessage)
+	return isoStruct
 
 }
 
-func convIsoTopupCheck(data TopupCheckResponse) iso8583.IsoStruct {
-	log.Println("Converting JSON to ISO8583")
+// Return ISO message for Topup Check JSON response
+func getIsoTopupCheck(jsonResponse TopupCheckResponse) iso8583.IsoStruct {
 
-	var trans map[int64]string
-	if data.Rc == "00" {
-		trans = map[int64]string{
-			39:  data.Rc,
-			48:  data.Restime,
-			120: data.Msg,
-			121: data.SN,
-			122: data.Price,
+	log.Println("Converting Topup Check JSON Response to ISO8583")
+	log.Printf("Topup Check Response (JSON): %v\n", jsonResponse)
+
+	// Assign data to map and add MTI
+	var response map[int]string
+	if jsonResponse.Rc == "00" {
+		response = map[int]string{
+			39:  jsonResponse.Rc,
+			48:  jsonResponse.Restime,
+			120: jsonResponse.Msg,
+			121: jsonResponse.SN,
+			122: jsonResponse.Price,
 		}
 	} else {
-		trans = map[int64]string{
-			39:  data.Rc,
-			48:  data.Restime,
-			120: data.Msg,
+		response = map[int]string{
+			39:  jsonResponse.Rc,
+			48:  jsonResponse.Restime,
+			120: jsonResponse.Msg,
 		}
 	}
+	mti := "0210"
 
-	one := iso8583.NewISOStruct("spec1987.yml", true)
-	spec, _ := specFromFile("spec1987.yml")
+	// Converting request map to isoStruct
+	isoStruct := getIso(response, mti)
 
-	if one.Mti.String() != "" {
-		log.Printf("Empty generates invalid MTI")
-	}
+	// Adding PAN for Topup Check Response
+	isoStruct.AddField(3, "380003")
+	isoMessage, _ := isoStruct.ToString()
 
-	for field, data := range trans {
-
-		fieldSpec := spec.fields[int(field)]
-
-		if fieldSpec.LenType == "fixed" {
-			lengthValidate, _ := iso8583.FixedLengthIntegerValidator(int(field), fieldSpec.MaxLen, data)
-
-			if lengthValidate == false {
-				if fieldSpec.ContentType == "n" {
-					data = leftPad(data, fieldSpec.MaxLen, "0")
-				} else {
-					data = rightPad(data, fieldSpec.MaxLen, " ")
-				}
-			}
-		}
-
-		one.AddField(field, data)
-
-	}
-
-	printSortedDE(one)
 	log.Println("Convert Success")
-	return one
+	log.Printf("Topup Check Response (ISO8583): %s\n", isoMessage)
+	return isoStruct
 
-}
-
-func convertJsonToIso(data PaymentResponse) iso8583.IsoStruct {
-
-	log.Println("Converting JSON to ISO8583")
-
-	cardAcceptorTerminalId := data.TransactionData.CardAcceptorData.CardAcceptorTerminalId
-	cardAcceptorName := data.TransactionData.CardAcceptorData.CardAcceptorName
-	cardAcceptorCity := data.TransactionData.CardAcceptorData.CardAcceptorCity
-	cardAcceptorCountryCode := data.TransactionData.CardAcceptorData.CardAcceptorCountryCode
-	responseStatus := convResp(data.ResponseStatus)
-
-	if len(data.TransactionData.CardAcceptorData.CardAcceptorTerminalId) < 16 {
-		cardAcceptorTerminalId = rightPad(data.TransactionData.CardAcceptorData.CardAcceptorTerminalId, 16, " ")
-	}
-	if len(data.TransactionData.CardAcceptorData.CardAcceptorName) < 25 {
-		cardAcceptorName = rightPad(data.TransactionData.CardAcceptorData.CardAcceptorName, 25, " ")
-	}
-	if len(data.TransactionData.CardAcceptorData.CardAcceptorCity) < 13 {
-		cardAcceptorCity = rightPad(data.TransactionData.CardAcceptorData.CardAcceptorCity, 13, " ")
-	}
-	if len(data.TransactionData.CardAcceptorData.CardAcceptorCountryCode) < 2 {
-		cardAcceptorCountryCode = rightPad(data.TransactionData.CardAcceptorData.CardAcceptorCountryCode, 2, " ")
-	}
-	cardAcceptor := cardAcceptorName + cardAcceptorCity + cardAcceptorCountryCode
-
-	trans := map[int64]string{
-		2:  data.TransactionData.Pan,
-		3:  data.TransactionData.ProcessingCode,
-		4:  strconv.Itoa(data.TransactionData.TotalAmount),
-		5:  data.TransactionData.SettlementAmount,
-		6:  data.TransactionData.CardholderBillingAmount,
-		7:  data.TransactionData.TransmissionDateTime,
-		9:  data.TransactionData.SettlementConversionRate,
-		10: data.TransactionData.CardHolderBillingConvRate,
-		11: data.TransactionData.Stan,
-		12: data.TransactionData.LocalTransactionTime,
-		13: data.TransactionData.LocalTransactionDate,
-		17: data.TransactionData.CaptureDate,
-		18: data.TransactionData.CategoryCode,
-		22: data.TransactionData.PointOfServiceEntryMode,
-		37: data.TransactionData.Refnum,
-		39: responseStatus,
-		41: cardAcceptorTerminalId,
-		43: cardAcceptor,
-		48: data.TransactionData.AdditionalData,
-		49: data.TransactionData.Currency,
-		50: data.TransactionData.SettlementCurrencyCode,
-		51: data.TransactionData.CardHolderBillingCurrencyCode,
-		57: data.TransactionData.AdditionalDataNational,
-	}
-
-	one := iso8583.NewISOStruct("spec1987.yml", false)
-	spec, _ := specFromFile("spec1987.yml")
-
-	if one.Mti.String() != "" {
-		log.Printf("Empty generates invalid MTI")
-	}
-
-	for field, data := range trans {
-
-		fieldSpec := spec.fields[int(field)]
-
-		if fieldSpec.LenType == "fixed" {
-			lengthValidate, _ := iso8583.FixedLengthIntegerValidator(int(field), fieldSpec.MaxLen, data)
-
-			if lengthValidate == false {
-				if fieldSpec.ContentType == "n" {
-					data = leftPad(data, fieldSpec.MaxLen, "0")
-				} else {
-					data = rightPad(data, fieldSpec.MaxLen, " ")
-				}
-			}
-		}
-
-		one.AddField(field, data)
-
-	}
-
-	printSortedDE(one)
-	log.Println("Convert Success")
-	return one
 }
 
 // Log sorted converted ISO Message
@@ -455,10 +327,4 @@ func rightPad(s string, length int, pad string) string {
 	}
 	padding := strings.Repeat(pad, length-len(s))
 	return s + padding
-}
-
-func convResp(resp Response) string {
-	response := fmt.Sprintf("%d%d%s", resp.ResponseCode, resp.ReasonCode, resp.ResponseDescription)
-	res := len(response)
-	return fmt.Sprintf("%d%s", res, response)
 }

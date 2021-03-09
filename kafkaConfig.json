@@ -1,0 +1,8 @@
+{
+  "broker": "localhost:9092",
+  "producer_topic": "goroutine-biller",
+  "consumer_topics": [
+    "goroutine-channel"
+  ],
+  "group": "test-go"
+}
