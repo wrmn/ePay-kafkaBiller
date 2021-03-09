@@ -51,7 +51,6 @@ func getIso(data map[int]string, mti string) (iso iso8583.IsoStruct) {
 
 	// Logging isoStruct field and value
 	printSortedDE(isoStruct)
-	log.Println("Convert Success")
 
 	return isoStruct
 }

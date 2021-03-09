@@ -25,6 +25,7 @@ func consumer(broker string, topics []string, group string) {
 	for {
 		msg, err := c.ReadMessage(-1)
 		if err == nil {
+			log.Println("New Request from Kafka")
 			log.Printf("Message consumed on %s: %s\n", msg.TopicPartition, string(msg.Value))
 
 			// Send any consumed event to consumerChan

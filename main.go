@@ -14,9 +14,6 @@ var (
 )
 
 func main() {
-	// ChannelKafka started
-	log.Println("Service Started!")
-
 	// Setting up log file
 	// set permission to read/write log file
 	// read/write to existing log file, if there is none it will create new log file
@@ -25,6 +22,9 @@ func main() {
 		log.Fatal("Found error in log ", err)
 	}
 	log.SetOutput(file)
+
+	// ChannelKafka started
+	log.Println("Service Started!")
 
 	// Setting up HTTP Listener and Handler
 	// router will handle any request at any endpoint available in server()
