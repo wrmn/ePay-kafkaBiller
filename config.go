@@ -30,5 +30,7 @@ func configKafka() (broker string, producerTopic string, consumerTopics []string
 	var config Config
 	json.Unmarshal(b, &config)
 
+	log.Printf("Kafka Config -> Broker: `%v`, Producer Topic: `%v`, Consumer Topics: `%v`, Group: `%v`",
+		config.Broker, config.ProducerTopic, config.ConsumerTopics, config.Group)
 	return config.Broker, config.ProducerTopic, config.ConsumerTopics, config.Group
 }
