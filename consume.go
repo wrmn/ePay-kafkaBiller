@@ -1,8 +1,10 @@
 package main
 
 import (
-	"github.com/confluentinc/confluent-kafka-go/kafka"
+	"fmt"
 	"log"
+
+	"github.com/confluentinc/confluent-kafka-go/kafka"
 )
 
 func consumer(broker string, topics []string, group string) {
@@ -12,7 +14,7 @@ func consumer(broker string, topics []string, group string) {
 	c, err := kafka.NewConsumer(&kafka.ConfigMap{
 		"bootstrap.servers": broker,
 		"group.id":          group,
-		"auto.offset.reset": "earliest",
+		"auto.offset.reset": "latest",
 	})
 
 	if err != nil {
@@ -27,13 +29,20 @@ func consumer(broker string, topics []string, group string) {
 		if err == nil {
 			log.Println("New Request from Kafka")
 			log.Printf("Message consumed on %s: %s\n", msg.TopicPartition, string(msg.Value))
+			headerRes := msg.Headers
+			headerVal := string(headerRes[0].Value)
 
+			res := consume{
+				header: headerVal,
+				body:   string(msg.Value),
+			}
+
+			fmt.Println(res.header)
 			// Send any consumed event to consumerChan
-			consumerChan <- string(msg.Value)
+			consumerChan <- res
+			consumerChan2 <- res
 		} else {
 			log.Printf("Consumer error: %v (%v)\n", err, msg)
 		}
 	}
-
-	c.Close()
 }

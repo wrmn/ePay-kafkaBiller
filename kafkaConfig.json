@@ -1,8 +1,8 @@
 {
   "broker": "localhost:9092",
-  "producer_topic": "goroutine-biller",
+  "producer_topic": "kafkaBiller",
   "consumer_topics": [
-    "goroutine-channel"
+    "goroutine-channel","channelKafka"
   ],
   "group": "test-go"
 }
