@@ -19,7 +19,6 @@ func requestHandler() {
 			// Send new request to `Biller` and get response that ready to produce
 			msg := newRequest.body
 			getResponse(msg)
-			fmt.Println(msg)
 			// Send new response to billerChan
 			//billerChan <- isoParsed
 			//fmt.Println(isoParsed)
@@ -39,9 +38,6 @@ func getResponse(message string) {
 
 	isoContent := message[4:]
 
-	fmt.Println(isoContent)
-	fmt.Println("well")
-
 	isoStruct := iso8583.NewISOStruct("spec1987.yml", false)
 	msg, err := isoStruct.Parse(isoContent)
 	if err != nil {
@@ -51,7 +47,7 @@ func getResponse(message string) {
 	//var isoParsed iso8583.IsoStruct
 	jsonIso := getEpayRinstis(msg)
 
-	fmt.Println(jsonIso)
+	responseFromBiller := sendJsonToBiller(jsonIso, "rintis")
 
-	sendJsonToBiller(jsonIso, "rintis")
+	fmt.Println(responseFromBiller)
 }

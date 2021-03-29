@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -243,10 +242,11 @@ func responseTopupCheck(jsonIso TopupCheckRequest) TopupCheckResponse {
 	return response
 }
 
-func sendJsonToBiller(data interface{}, target string) {
+func sendJsonToBiller(data interface{}, target string) (response rintisResponse) {
 	client := &http.Client{}
 	bodyReq, _ := json.Marshal(data)
-	req, err := http.NewRequest("POST", "http://localhost:6001/epay/rintis", bytes.NewBuffer(bodyReq))
+
+	req, err := http.NewRequest("POST", "http://localhost:6001/epay/"+target, bytes.NewBuffer(bodyReq))
 	req.Header.Set("Content-Type", "application/json")
 	if err != nil {
 		log.Fatalf("Failed to sent request to https://tiruan.herokuapp.com/biller. Error: %v\n", err)
@@ -260,5 +260,11 @@ func sendJsonToBiller(data interface{}, target string) {
 	defer resp.Body.Close()
 
 	body, _ := ioutil.ReadAll(resp.Body)
-	fmt.Println(string(body))
+
+	err = json.Unmarshal(body, &response)
+	if err != nil {
+		log.Printf("Error unmarshal JSON: %s", err.Error())
+	}
+
+	return response
 }
