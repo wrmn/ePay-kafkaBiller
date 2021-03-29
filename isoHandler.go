@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/mofax/iso8583"
@@ -18,12 +17,11 @@ func requestHandler() {
 
 			// Send new request to `Biller` and get response that ready to produce
 			msg := newRequest.body
-			getResponse(msg)
+			go getResponse(msg)
 			// Send new response to billerChan
 			//billerChan <- isoParsed
 			//fmt.Println(isoParsed)
 			// Done with requestHandler
-			log.Println(newRequest)
 
 		// keep looping if there is none new request
 		default:
@@ -49,5 +47,12 @@ func getResponse(message string) {
 
 	responseFromBiller := sendJsonToBiller(jsonIso, "rintis")
 
-	fmt.Println(responseFromBiller)
+	billerIso, headerVal := responseStructToIso(responseFromBiller)
+
+	res := consume{
+		header: headerVal,
+		body:   billerIso,
+	}
+
+	consumerChan <- res
 }

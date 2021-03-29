@@ -1,14 +1,17 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/go-yaml/yaml"
 	"github.com/mofax/iso8583"
+	"github.com/rivo/uniseg"
 )
 
 // Return ISO Message by converting data from map[int]string
@@ -99,6 +102,58 @@ func getIsoPPOBStatus(jsonResponse PPOBStatusResponse) iso8583.IsoStruct {
 	log.Println("Convert Success")
 	log.Printf("PPOB Status Response (ISO8583): %s\n", isoMessage)
 	return isoStruct
+
+}
+
+func responseStructToIso(data rintisResponse) (string, string) {
+	log.Printf("rintisResponse (JSON): %v\n", data)
+
+	// Conv amount to int
+	amount := strconv.Itoa(data.TotalAmount)
+
+	// Mapping struct
+	request := map[int]string{
+		2:   data.Pan,
+		3:   data.ProcessingCode,
+		4:   amount,
+		7:   data.TransmissionDateTime,
+		11:  data.Stan,
+		12:  data.LocalTransactionTime,
+		13:  data.LocalTransactionDate,
+		15:  data.SettlementDate,
+		17:  data.CaptureDate,
+		32:  data.AcquirerID,
+		35:  data.Track2Data,
+		37:  data.Refnum,
+		38:  data.AuthIdResponse,
+		39:  data.ResponseCode,
+		41:  data.TerminalID,
+		44:  data.AdditionalResponseData,
+		49:  data.Currency,
+		60:  data.TerminalData,
+		100: data.ReceivingInstitutionIDCode,
+		103: data.AccountTo,
+		126: data.TokenData,
+	}
+
+	// Add MTI
+	mti := "0200"
+
+	// Converting request map to isoStruct
+	isoStruct := getIso(request, mti)
+
+	// Add len header
+	isoMessage, _ := isoStruct.ToString()
+	isoHeader := fmt.Sprintf("%04d", uniseg.GraphemeClusterCount(isoMessage))
+	isoRequest := isoHeader + isoMessage
+
+	// Create file from request
+	filename := "Request_from_ePayRintis@" + fmt.Sprintf(time.Now().Format("2006-01-02 15:04:05"))
+	file := CreateFile("storage/request/"+filename, isoRequest)
+	log.Println("Request file: ", file)
+
+	log.Printf("Topup Check Request (ISO8583): %s\n", isoRequest)
+	return isoRequest, data.Stan
 
 }
 

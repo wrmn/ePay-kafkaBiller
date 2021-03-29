@@ -4,5 +4,5 @@
   "consumer_topics": [
     "goroutine-channel","channelKafka"
   ],
-  "group": "test-go"
+  "group": "test"
 }

@@ -1,26 +1,17 @@
 package main
 
 import (
-	"fmt"
 	"log"
-	"math/rand"
-	"strconv"
-	"time"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 )
 
 func producer(broker string, topic string, message <-chan consume) {
 	log.Println("Producer started!")
-	rand.Seed(time.Now().UnixNano())
 
 	// Setting up kafka message to get ready to be produced
 	// message to be produced
 	msg := <-message
-
-	nice := rand.Intn(100)
-	time.Sleep(time.Duration(nice) * time.Millisecond)
-	fmt.Println(strconv.Itoa(nice) + "timing")
 	// Setting up Consumer (Kafka) config
 	p, err := kafka.NewProducer(&kafka.ConfigMap{
 		"bootstrap.servers": broker,

@@ -39,7 +39,6 @@ func consumer(broker string, topics []string, group string) {
 
 			fmt.Println(res.header)
 			// Send any consumed event to consumerChan
-			consumerChan <- res
 			consumerChan2 <- res
 		} else {
 			log.Printf("Consumer error: %v (%v)\n", err, msg)
